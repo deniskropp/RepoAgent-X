@@ -63,7 +63,7 @@ class Runner:
 
         for root, dirs, files in os.walk(directory):
             for file in files:
-                if file.endswith(".py"):
+                if file.endswith(".cpp") or file.endswith(".hpp"):
                     python_files.append(os.path.join(root, file))
 
         return python_files
@@ -198,11 +198,12 @@ class Runner:
                 markdown = ""
                 for _, child in file_item.children.items():
                     markdown += to_markdown(child, 2)
-                assert markdown != None, f"Markdown content is empty, the file path is: {rel_file_path}"
+                assert markdown != None, f"Markdown content is empty, the file path is: {
+                    rel_file_path}"
                 # 写入markdown内容到.md文件
                 file_path = os.path.join(
                     setting.project.markdown_docs_name,
-                    file_item.get_file_name().replace(".py", ".md"),
+                    file_item.get_file_name().replace(".cpp", ".md").replace(".hpp", ".md"),
                 )
                 if file_path.startswith("/"):
                     # 移除开头的 '/'
@@ -356,7 +357,7 @@ class Runner:
             os.path.join(
                 self.project_manager.repo_path,
                 setting.project.markdown_docs_name,
-                file_handler.file_path.replace(".py", ".md"),
+                file_handler.file_path.replace(".cpp", ".md").replace(".hpp", ".md"),
             ),
             markdown,
         )
@@ -414,7 +415,7 @@ class Runner:
             file_handler.write_file(
                 os.path.join(
                     setting.project.markdown_docs_name,
-                    file_handler.file_path.replace(".py", ".md"),
+                    file_handler.file_path.replace(".cpp", ".md").replace(".hpp", ".md"),
                 ),
                 markdown,
             )

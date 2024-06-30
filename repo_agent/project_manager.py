@@ -27,7 +27,7 @@ class ProjectManager:
                     path = os.path.join(root, name)
                     if os.path.isdir(path):
                         walk_dir(path, new_prefix)
-                    elif os.path.isfile(path) and name.endswith(".py"):
+                    elif os.path.isfile(path) and (name.endswith(".cpp") or name.endswith(".hpp")):
                         structure.append(new_prefix + name)
 
             structure = []

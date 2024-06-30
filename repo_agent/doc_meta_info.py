@@ -188,7 +188,7 @@ class DocItem:
 
     def get_file_name(self):
         full_name = self.get_full_name()
-        return full_name.split(".py")[0] + ".py"
+        return full_name.split(".cpp")[0] + ".cpp"
 
     def get_full_name(self, strict = False):
             """获取从下到上所有的obj名字

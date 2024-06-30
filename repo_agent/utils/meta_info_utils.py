@@ -7,7 +7,7 @@ from colorama import Fore, Style
 from repo_agent.log import logger
 from repo_agent.settings import setting
 
-latest_verison_substring = "_latest_version.py"
+latest_verison_substring = "_latest_version.cpp"
 
 
 def make_fake_files():
@@ -25,7 +25,7 @@ def make_fake_files():
 
     jump_files = [] #这里面的内容不parse、不生成文档，并且引用关系也不计算他们
     for file_name in untracked_files:
-        if file_name.endswith(".py"):
+        if file_name.endswith(".cpp") or file_name.endswith(".hpp"):
             print(f"{Fore.LIGHTMAGENTA_EX}[SKIP untracked files]: {Style.RESET_ALL}{file_name}")
             jump_files.append(file_name)
     for diff_file in unstaged_changes.iter_change_type('A'): #新增的、没有add的文件，都不处理
@@ -41,7 +41,7 @@ def make_fake_files():
             logger.error("FAKE_FILE_IN_GIT_STATUS detected! suggest to use `delete_fake_files` and re-generate document")
             exit()
         now_file_path = diff_file.a_path #针对repo_path的相对路径
-        if now_file_path.endswith(".py"):
+        if now_file_path.endswith(".cpp") or now_file_path.endswith(".hpp"):
             raw_file_content = diff_file.a_blob.data_stream.read().decode("utf-8")
             latest_file_path = now_file_path[:-3] + latest_verison_substring
             if os.path.exists(os.path.join(setting.project.target_repo,now_file_path)):
@@ -69,13 +69,15 @@ def delete_fake_files():
             if os.path.isdir(fi_d):
                 gci(fi_d)
             elif fi_d.endswith(latest_verison_substring):
-                origin_name = fi_d.replace(latest_verison_substring, ".py")
+                origin_name = fi_d.replace(latest_verison_substring, ".cpp")
                 os.remove(origin_name)
                 if os.path.getsize(fi_d) == 0:
-                    print(f"{Fore.LIGHTRED_EX}[Deleting Temp File]: {Style.RESET_ALL}{fi_d[len(setting.project.target_repo):]}, {origin_name[len(setting.project.target_repo):]}")
+                    print(f"{Fore.LIGHTRED_EX}[Deleting Temp File]: {Style.RESET_ALL}{fi_d[len(
+                        setting.project.target_repo):]}, {origin_name[len(setting.project.target_repo):]}")
                     os.remove(fi_d)
                 else:
-                    print(f"{Fore.LIGHTRED_EX}[Recovering Latest Version]: {Style.RESET_ALL}{origin_name[len(setting.project.target_repo):]} <- {fi_d[len(setting.project.target_repo):]}")
+                    print(f"{Fore.LIGHTRED_EX}[Recovering Latest Version]: {Style.RESET_ALL}{
+                          origin_name[len(setting.project.target_repo):]} <- {fi_d[len(setting.project.target_repo):]}")
                     os.rename(fi_d, origin_name)
 
     gci(setting.project.target_repo)

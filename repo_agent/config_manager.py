@@ -70,8 +70,8 @@ def write_config(update_config: dict, file_path: Path | None = None) -> None:
     existing_config.update(update_config)
 
     # 将更新后的配置写回文件
-    with open(file_path, "wb") as f:
-        tomli_w.dump(existing_config, f)
+#    with open(file_path, "wb") as f:
+#        tomli_w.dump(existing_config, f)
 
 if __name__ == '__main__':
     # Sample TOML data to be written to the configuration file

@@ -48,7 +48,7 @@ class ChangeDetector:
         diffs = repo.index.diff("HEAD", R=True)
 
         for diff in diffs:
-            if diff.change_type in ["A", "M"] and diff.a_path.endswith(".py"):
+            if diff.change_type in ["A", "M"] and (diff.a_path.endswith(".cpp") or diff.a_path.endswith(".hpp")):
                 is_new_file = diff.change_type == "A"
                 staged_files[diff.a_path] = is_new_file
 
@@ -191,7 +191,7 @@ class ChangeDetector:
                 rel_untracked_file = os.path.relpath(
                     rel_untracked_file, setting.project.markdown_docs_name
                 )
-                corresponding_py_file = os.path.splitext(rel_untracked_file)[0] + ".py"
+                corresponding_py_file = os.path.splitext(rel_untracked_file)[0] + ".cpp"
                 print(
                     f"corresponding_py_file in untracked_files:{corresponding_py_file}"
                 )
@@ -231,7 +231,7 @@ class ChangeDetector:
                 rel_unstaged_file = os.path.relpath(
                     rel_unstaged_file, setting.project.markdown_docs_name
                 )
-                corresponding_py_file = os.path.splitext(rel_unstaged_file)[0] + ".py"
+                corresponding_py_file = os.path.splitext(rel_unstaged_file)[0] + ".cpp"
                 print(f"corresponding_py_file:{corresponding_py_file}")
                 if corresponding_py_file in staged_files:
                     # 如果是，那么就把这个md文件也加入到unstaged_files中

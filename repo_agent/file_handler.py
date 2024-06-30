@@ -1,6 +1,6 @@
 # FileHandler 类，实现对文件的读写操作，这里的文件包括markdown文件和python文件
 # repo_agent/file_handler.py
-import ast
+# import ast
 import json
 import os
 
@@ -8,19 +8,24 @@ import git
 from colorama import Fore, Style
 from tqdm import tqdm
 
+import clang.cindex
+
 from repo_agent.settings import setting
 from repo_agent.utils.gitignore_checker import GitignoreChecker
 from repo_agent.utils.meta_info_utils import latest_verison_substring
 
 
+# The `FileHandler` class is responsible for performing read and write operations on files, specifically markdown and Python files. It is part of the `repo_agent` package and is defined in the `file_handler.py` file. This class is used to handle file operations within the `repo_agent` system.
 class FileHandler:
     """
     历变更后的文件的循环中，为每个变更后文件（也就是当前文件）创建一个实例
     """
+
     def __init__(self, repo_path, file_path):
         self.file_path = file_path  # 这里的file_path是相对于仓库根目录的路径
         self.repo_path = repo_path
-        self.project_hierarchy = setting.project.target_repo / setting.project.hierarchy_name
+        self.project_hierarchy = setting.project.target_repo / \
+            setting.project.hierarchy_name
 
     def read_file(self):
         """
@@ -177,29 +182,31 @@ class FileHandler:
             A list of tuples containing the type of the node (FunctionDef, ClassDef, AsyncFunctionDef),
             the name of the node, the starting line number, the ending line number, the name of the parent node, and a list of parameters (if any).
         """
-        tree = ast.parse(code_content)
-        self.add_parent_references(tree)
+        # Set up the index (containing all of the files in the project)
+        index = clang.cindex.Index.create()
+
+        print(self.file_path)
+        # Parse the file, getting the translation unit
+        translation_unit = index.parse(self.file_path)
+        print(translation_unit)
+
+        # Get all the functions and classes
         functions_and_classes = []
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
-                # if node.name == "recursive_check":
-                #     import pdb; pdb.set_trace()
-                start_line = node.lineno
-                end_line = self.get_end_lineno(node)
-                # def get_recursive_parent_name(node):
-                #     now = node
-                #     while "parent" in dir(now):
-                #         if isinstance(now.parent, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
-                #             assert 'name' in dir(now.parent)
-                #             return now.parent.name
-                #         now = now.parent
-                #     return None
-                # parent_name = get_recursive_parent_name(node)
-                parameters = [arg.arg for arg in node.args.args] if 'args' in dir(node) else []
-                all_names = [item[1] for item in functions_and_classes]
-                # (parent_name == None or parent_name in all_names) and 
+        for cursor in translation_unit.cursor.walk_preorder():
+            if cursor.location.file is None or cursor.location.file.name != self.file_path:
+                continue
+            if cursor.kind in (
+                clang.cindex.CursorKind.CXX_METHOD,
+                clang.cindex.CursorKind.FUNCTION_DECL,
+                clang.cindex.CursorKind.CLASS_DECL,
+                clang.cindex.CursorKind.STRUCT_DECL,
+            ):
+                start_line = cursor.location.line
+                end_line = cursor.extent.end.line
+                parameters = [p.spelling for p in cursor.get_arguments()]
                 functions_and_classes.append(
-                    (type(node).__name__, node.name, start_line, end_line, parameters)
+                    (cursor.kind.name, cursor.spelling,
+                     start_line, end_line, parameters)
                 )
         return functions_and_classes
 
@@ -231,6 +238,7 @@ class FileHandler:
             }
         }
         """
+        self.file_path = file_path
         with open(os.path.join(self.repo_path, file_path), "r", encoding="utf-8") as f:
             content = f.read()
             structures = self.get_functions_and_classes(content)

@@ -29,7 +29,7 @@ class ProjectSettings(BaseSettings):
     hierarchy_name: str = ".project_doc_record"
     markdown_docs_name: str = "markdown_docs"
     ignore_list: list[str] = []
-    language: str = "Chinese"
+    language: str = "en"
     max_thread_count: PositiveInt = 4
     max_document_tokens: PositiveInt = 1024
     log_level: LogLevel = LogLevel.INFO
@@ -41,17 +41,6 @@ class ProjectSettings(BaseSettings):
             return [] 
         return ignore_list
     
-    @field_validator("language")
-    @classmethod
-    def validate_language_code(cls, v: str) -> str:
-        try:
-            language_name = Language.match(v).name
-            return language_name  # Returning the resolved language name
-        except LanguageNotFoundError:
-            raise ValueError(
-                "Invalid language input. Please enter a valid ISO 639 code or language name."
-            )
-
     @field_validator("log_level", mode="before")
     @classmethod
     def set_log_level(cls, v: str) -> LogLevel:
